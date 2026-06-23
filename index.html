@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Siklus - Komunitas Layanan AC Bersahabat</title>
+    <!-- Tailwind CSS untuk Desain Responsif -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SDK Supabase Resmi via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans">
+
+    <!-- HEADER / NAVIGASI -->
+    <header class="bg-blue-600 text-white p-4 sticky top-0 z-50 shadow-md">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold tracking-wider">SIKLUS</h1>
+            <span class="bg-blue-700 text-xs px-2 py-1 rounded">Jasa Teknik AC Berbasis Komunitas</span>
+        </div>
+    </header>
+
+    <!-- HERO SECTION -->
+    <section class="bg-gradient-to-b from-blue-600 to-blue-500 text-white py-12 px-6 text-center">
+        <h2 class="text-3xl font-extrabold mb-3">Memberi layanan terbaik untuk harga terbaik</h2>
+        <p class="text-sm opacity-90 max-w-md mx-auto mb-6">SIKLUS adalah ruang terpercaya bagi teknisi AC lokal terverifikasi dan pengguna AC di Jakarta untuk mewujudkan konversi transaksi yang logis.</p>
+        
+        <!-- Wadah Tombol Hero Dinamis (Login / Registrasi) -->
+        <div id="hero-buttons" class="flex justify-center gap-4">
+            <a href="#daftar-teknisi" class="bg-white text-blue-600 font-semibold px-4 py-2 rounded-lg text-sm shadow">Gabung Jadi Teknisi</a>
+            <a href="#daftar-user" class="bg-blue-800 text-white font-semibold px-4 py-2 rounded-lg text-sm shadow">Daftar Pengguna</a>
+            <button onclick="bukaModalLogin()" class="bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg text-sm shadow border border-blue-500">Masuk</button>
+        </div>
+    </section>
+
+    <!-- FITUR FILTER TEKNISI -->
+    <section class="container mx-auto p-6 -mt-8">
+        <div class="bg-white p-4 rounded-xl shadow-lg border border-gray-100">
+            <h3 class="font-bold text-gray-700 mb-3 text-sm">Cari Teknisi Terdekat</h3>
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Pilih Wilayah</label>
+                    <select id="filter-wilayah" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-xs">
+                        <option value="Semua">Semua Jakarta</option>
+                        <option value="Jakarta Selatan">Jakarta Selatan</option>
+                        <option value="Jakarta Barat">Jakarta Barat</option>
+                        <option value="Jakarta Timur">Jakarta Timur</option>
+                        <option value="Jakarta Utara">Jakarta Utara</option>
+                        <option value="Jakarta Pusat">Jakarta Pusat</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Status</label>
+                    <select id="filter-status" class="w-full bg-gray-50 border border-gray-200 rounded p-2 text-xs">
+                        <option value="Semua">Semua Status</option>
+                        <option value="Aktif">Siap Bertugas (Aktif)</option>
+                        <option value="Off">Sedang Sibuk / Off</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- DAFTAR TEKNISI TERVERIFIKASI -->
+    <section class="container mx-auto px-6 py-4">
+        <h3 class="font-bold text-lg text-gray-800 mb-4">Teknisi Terpopuler Minggu Ini</h3>
+        <div id="daftar-teknisi-container" class="space-y-4">
+            <p class="text-xs text-gray-400 text-center py-6">Sedang memuat data teknisi...</p>
+        </div>
+    </section>
+
+    <!-- MODAL 1: DETAIL PROFIL & PORTOFOLIO -->
+    <div id="modal-profil" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto p-6 relative">
+            <button onclick="tutupModal('modal-profil')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 font-bold text-lg">&times;</button>
+            
+            <div class="flex items-center gap-4 mb-4">
+                <img id="modal-foto" src="" alt="Foto Wajah" class="w-16 h-16 rounded-full object-cover border-2 border-blue-500">
+                <div>
+                    <div class="flex items-center gap-1.5">
+                        <h4 id="modal-nama" class="font-bold text-lg text-gray-900"></h4>
+                        <span class="bg-green-100 text-green-700 text-[10px] px-1.5 py-0.5 rounded font-medium">Terverifikasi</span>
+                    </div>
+                    <p id="modal-lokasi" class="text-xs text-gray-500"></p>
+                    <p id="modal-status" class="text-xs font-bold mt-1"></p>
+                </div>
+            </div>
+
+            <!-- Detail 5 Parameter Rating Kualitas Baru -->
+            <div class="bg-gray-50 p-3 rounded-lg text-xs space-y-1 mb-4">
+                <h5 class="font-bold text-gray-700 mb-1">Rincian Rating Kualitas:</h5>
+                <div class="flex justify-between"><span>Ketepatan Waktu:</span> <span id="rating-waktu" class="font-bold text-yellow-600"></span></div>
+                <div class="flex justify-between"><span>Komunikasi / Transparansi:</span> <span id="rating-komunikasi" class="font-bold text-yellow-600"></span></div>
+                <div class="flex justify-between"><span>Kerapihan / Kebersihan:</span> <span id="rating-rapi" class="font-bold text-yellow-600"></span></div>
+                <div class="flex justify-between"><span>Keahlian:</span> <span id="rating-keahlian" class="font-bold text-yellow-600"></span></div>
+                <div class="flex justify-between"><span>Edukasi:</span> <span id="rating-edukasi" class="font-bold text-yellow-600"></span></div>
+            </div>
+
+            <!-- Portofolio Foto Hasil Kerja -->
+            <h5 class="font-bold text-sm text-gray-800 mb-2">Portofolio Hasil Kerja:</h5>
+            <div id="modal-portofolio" class="grid grid-cols-2 gap-2 mb-6">
+                <!-- Diisi oleh JavaScript -->
+            </div>
+
+            <!-- Tombol CTA -->
+            <button id="btn-lanjut-pesan" class="block w-full text-center bg-blue-600 text-white py-3 rounded-xl font-bold text-sm shadow hover:bg-blue-700">
+                Pesan Teknisi Ini
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL 2: FORM PENJADWALAN & RINCIAN HARGA (ONE GATE) -->
+    <div id="modal-booking" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto p-6 relative">
+            <button onclick="tutupModal('modal-booking')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 font-bold text-lg">&times;</button>
+            
+            <h3 class="font-bold text-lg text-gray-900 mb-1">Jadwalkan Layanan</h3>
+            <p id="booking-nama-teknisi" class="text-xs text-blue-600 font-semibold mb-4"></p>
+
+            <form id="form-order" class="space-y-4">
+                <!-- Data Pelanggan Otomatis Terisi & Dikunci (TIDAK PERLU DIKETIK ULANG) -->
+                <div class="grid grid-cols-2 gap-2 border-b border-gray-100 pb-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">Nama Pemesan</label>
+                        <input type="text" id="order-cust-name" readonly required class="w-full border border-gray-200 rounded p-2 text-xs bg-gray-100 text-gray-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">WhatsApp Pemesan</label>
+                        <input type="tel" id="order-cust-phone" readonly required class="w-full border border-gray-200 rounded p-2 text-xs bg-gray-100 text-gray-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <!-- Tanggal & Waktu -->
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">Pilih Hari & Tanggal</label>
+                        <input type="date" id="order-date" required class="w-full border border-gray-200 rounded p-2 text-xs focus:outline-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">Pilih Waktu</label>
+                        <input type="time" id="order-time" required class="w-full border border-gray-200 rounded p-2 text-xs focus:outline-blue-500">
+                    </div>
+                </div>
+
+                <!-- Jenis Pekerjaan -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Jenis Pekerjaan</label>
+                    <select id="order-layanan" onchange="hitungHarga()" class="w-full border border-gray-200 rounded p-2 text-xs focus:outline-blue-500">
+                        <option value="pasang">Pemasangan AC Split</option>
+                        <option value="perawatan">Perawatan AC (Cuci AC)</option>
+                        <option value="perbaikan">Perbaikan AC (Diagnosa Dulu)</option>
+                        <option value="bongkar">Bongkar AC</option>
+                    </select>
+                </div>
+
+                <!-- Sub-Opsi Kapasitas PK -->
+                <div id="div-pk">
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Ukuran Kapasitas AC</label>
+                    <select id="order-pk" onchange="hitungHarga()" class="w-full border border-gray-200 rounded p-2 text-xs focus:outline-blue-500">
+                        <option value="small">1/2 PK - 1 PK</option>
+                        <option value="large">1.5 PK - 2 PK</option>
+                    </select>
+                </div>
+
+                <!-- Jumlah Unit AC untuk Jasa -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Jumlah Unit AC (Untuk Jasa)</label>
+                    <input type="number" id="order-qty" value="1" min="1" onchange="hitungHarga()" oninput="hitungHarga()" class="w-full border border-gray-200 rounded p-2 text-xs focus:outline-blue-500">
+                </div>
+
+                <!-- Pilihan Material Tambahan Dengan Input Quantity Eceran Mandiri -->
+                <div class="border-t border-gray-100 pt-3 space-y-3">
+                    <label class="block text-xs font-bold text-gray-700">Tambahan Jasa & Material</label>
+                    
+                    <!-- Pipa Tembaga + Kabel (Per Meter) -->
+                    <div class="bg-gray-50 p-2.5 rounded-lg border border-gray-150 space-y-2">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="mat-pipa" onchange="toggleMaterialQty('pipa')" class="rounded border-gray-300 text-blue-600">
+                            <span class="text-xs font-bold">Pipa Tembaga + Kabel</span>
+                        </label>
+                        <div id="div-qty-pipa" class="hidden flex items-center justify-between text-xs pl-6">
+                            <span class="text-[11px] text-gray-500 font-semibold" id="label-harga-pipa"></span>
+                            <div class="flex items-center gap-1.5">
+                                <label class="text-[10px] text-gray-500">Panjang:</label>
+                                <input type="number" id="qty-pipa" value="1" min="1" onchange="hitungHarga()" oninput="hitungHarga()" class="w-14 border border-gray-200 rounded p-1 text-center text-xs focus:outline-blue-500">
+                                <span>Meter</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bracket Outdoor -->
+                    <div class="bg-gray-50 p-2.5 rounded-lg border border-gray-150 space-y-2">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="mat-bracket" onchange="toggleMaterialQty('bracket')" class="rounded border-gray-300 text-blue-600">
+                            <span class="text-xs font-bold">Bracket Outdoor Unit</span>
+                        </label>
+                        <div id="div-qty-bracket" class="hidden flex items-center justify-between text-xs pl-6">
+                            <span class="text-[11px] text-gray-500 font-semibold" id="label-harga-bracket"></span>
+                            <div class="flex items-center gap-1.5">
+                                <label class="text-[10px] text-gray-500">Jumlah:</label>
+                                <input type="number" id="qty-bracket" value="1" min="1" onchange="hitungHarga()" oninput="hitungHarga()" class="w-14 border border-gray-200 rounded p-1 text-center text-xs focus:outline-blue-500">
+                                <span>Set</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stop Kontak Kaki 3 -->
+                    <div class="bg-gray-50 p-2.5 rounded-lg border border-gray-150 space-y-2">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="mat-stopkontak" onchange="toggleMaterialQty('stopkontak')" class="rounded border-gray-300 text-blue-600">
+                            <span class="text-xs font-bold">Stop Kontak Kaki 3 + Steker</span>
+                        </label>
+                        <div id="div-qty-stopkontak" class="hidden flex items-center justify-between text-xs pl-6">
+                            <span class="text-[11px] text-gray-500 font-semibold">Harga: Rp 90.000 / set</span>
+                            <div class="flex items-center gap-1.5">
+                                <label class="text-[10px] text-gray-500">Jumlah:</label>
+                                <input type="number" id="qty-stopkontak" value="1" min="1" onchange="hitungHarga()" oninput="hitungHarga()" class="w-14 border border-gray-200 rounded p-1 text-center text-xs focus:outline-blue-500">
+                                <span>Set</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Opsi Beli Unit AC Baru dari File JSON -->
+                <div class="border-t border-gray-100 pt-3">
+                    <label class="flex items-center gap-2 cursor-pointer mb-2">
+                        <input type="checkbox" id="beli-unit-check" onchange="toggleBeliUnit()" class="rounded border-gray-300 text-blue-600">
+                        <span class="text-xs font-bold text-gray-700">Sekalian Beli Unit AC Baru?</span>
+                    </label>
+                    
+                    <div id="div-beli-unit" class="hidden space-y-2">
+                        <label class="block text-[10px] text-gray-500">Pilih Merk, Model, & Kapasitas PK</label>
+                        <select id="select-unit-ac" onchange="hitungHarga()" class="w-full border border-gray-200 rounded p-2 text-xs focus:outline-blue-500">
+                            <option value="">-- Sedang memuat katalog AC... --</option>
+                        </select>
+                        
+                        <!-- Panel Detail Spesifikasi AC Ala Maknyess.id -->
+                        <div id="preview-spek-ac" class="hidden bg-gray-50 p-3 rounded-xl border border-gray-150 text-[11px] text-gray-700 space-y-1">
+                            <!-- Diisi otomatis oleh JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Catatan Kendala -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Catatan Kendala / Detail Permintaan</label>
+                    <textarea id="order-kendala" required class="w-full border border-gray-200 rounded p-2 text-xs focus:outline-blue-500" placeholder="Contoh: AC kamar netes air dan kurang dingin..."></textarea>
+                </div>
+
+                <!-- SCREEN RINCIAN ESTIMASI & APPROVAL HARGA -->
+                <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 space-y-2">
+                    <h4 class="font-bold text-xs text-blue-800">Rincian Estimasi Biaya Awal</h4>
+                    <div class="text-xs space-y-1 text-gray-700">
+                        <div class="flex justify-between"><span>Biaya Jasa:</span> <span id="preview-jasa">Rp 0</span></div>
+                        <div class="flex justify-between"><span>Biaya Unit & Material:</span> <span id="preview-material">Rp 0</span></div>
+                        <hr class="border-blue-100 my-1">
+                        <div class="flex justify-between font-bold text-sm text-blue-950">
+                            <span>Total Estimasi:</span> <span id="preview-total">Rp 0</span>
+                        </div>
+                    </div>
+                    <p class="text-[10px] text-gray-500 italic mt-1 leading-relaxed">
+                        *Jika ada penambahan pengerjaan jasa harap dikomunikasikan dengan Admin terlebih dahulu.
+                    </p>
+
+                    <!-- Checkbox Approval -->
+                    <div class="pt-2 border-t border-blue-100 mt-2">
+                        <label class="flex items-start gap-2 cursor-pointer">
+                            <input type="checkbox" id="approval-check" onchange="toggleOrderButton()" class="mt-0.5 rounded border-blue-300 text-blue-600 focus:ring-blue-500">
+                            <span class="text-[11px] text-blue-900 font-medium">Saya menyetujui rincian estimasi harga awal di atas.</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Tombol Kirim Akhir (One Gate) -->
+                <button type="button" id="btn-final-order" disabled onclick="prosesSimpanDanKirim()" class="w-full bg-gray-400 text-white py-3 rounded-xl font-bold text-sm shadow cursor-not-allowed transition-all">
+                    Setujui & Pesan via Admin
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 3: LOGIN ANGGOTA -->
+    <div id="modal-login" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-sm p-6 relative shadow-lg">
+            <button onclick="tutupModal('modal-login')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 font-bold text-lg">&times;</button>
+            <h3 class="font-bold text-lg text-gray-900 mb-1">Masuk Anggota Siklus</h3>
+            <p class="text-xs text-gray-500 mb-4">Gunakan nomor WhatsApp terdaftar Anda untuk masuk ke platform.</p>
+            
+            <form id="form-login" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Nomor WhatsApp</label>
+                    <input type="tel" id="login-phone" required class="w-full border border-gray-200 rounded p-2 text-xs focus:outline-blue-500" placeholder="Contoh: 08123456789">
+                </div>
+                <button type="button" onclick="prosesLogin()" class="w-full bg-blue-600 text-white py-2 rounded-lg font-bold text-sm shadow hover:bg-blue-700">
+                    Masuk
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- FORMULIR PENDAFTARAN -->
+    <section class="container mx-auto px-6 py-6 space-y-6">
+        
+        <!-- Form Pendaftaran Teknisi -->
+        <div id="daftar-teknisi" class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+            <h3 class="font-bold text-gray-800 mb-1">Pendaftaran Teknisi Baru</h3>
+            <p class="text-xs text-gray-500 mb-4">Isi data di bawah ini untuk diverifikasi oleh tim Siklus.</p>
+            <form id="form-teknisi" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Nama Lengkap (Sesuai KTP)</label>
+                    <input type="text" name="name" required class="w-full border border-gray-200 rounded p-2 text-sm focus:outline-blue-500" placeholder="Contoh: Ahmad Hidayat">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Nomor WhatsApp Aktif (Disembunyikan)</label>
+                    <input type="tel" name="phone" required class="w-full border border-gray-200 rounded p-2 text-sm focus:outline-blue-500" placeholder="Contoh: 08123456789">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">Wilayah Utama</label>
+                        <select name="region" required class="w-full border border-gray-200 rounded p-2 text-xs focus:outline-blue-500">
+                            <option value="Jakarta Selatan">Jakarta Selatan</option>
+                            <option value="Jakarta Barat">Jakarta Barat</option>
+                            <option value="Jakarta Timur">Jakarta Timur</option>
+                            <option value="Jakarta Utara">Jakarta Utara</option>
+                            <option value="Jakarta Pusat">Jakarta Pusat</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">Kecamatan Domisili</label>
+                        <input type="text" name="subdistrict" required class="w-full border border-gray-200 rounded p-2 text-sm focus:outline-blue-500" placeholder="Contoh: Palmerah">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Foto Wajah (Sesuai KTP - Format Gambar)</label>
+                    <input type="file" name="profilePhoto" accept="image/*" required class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg font-bold text-sm shadow hover:bg-blue-700">Kirim Data Verifikasi</button>
+            </form>
+        </div>
+
+        <!-- Form Pendaftaran User -->
+        <div id="daftar-user" class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+            <h3 class="font-bold text-gray-800 mb-1">Daftar Sebagai Pengguna AC</h3>
+            <p class="text-xs text-gray-500 mb-4">Bergabung untuk mendapatkan teknisi AC jujur di area Anda.</p>
+            <form id="form-user" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Nama Anda</label>
+                    <input type="text" name="name" required class="w-full border border-gray-200 rounded p-2 text-sm focus:outline-blue-500" placeholder="Contoh: Ibu Budi">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Nomor WhatsApp</label>
+                    <input type="tel" name="phone" required class="w-full border border-gray-200 rounded p-2 text-sm focus:outline-blue-500" placeholder="Contoh: 08987654321">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Alamat Rumah (Sesuai Lokasi AC)</label>
+                    <textarea name="address" required class="w-full border border-gray-200 rounded p-2 text-sm focus:outline-blue-500" placeholder="Tuliskan alamat lengkap Anda"></textarea>
+                </div>
+                <button type="submit" class="w-full bg-blue-800 text-white py-2 rounded-lg font-bold text-sm shadow hover:bg-blue-900">Daftar Sekarang</button>
+            </form>
+        </div>
+
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-gray-800 text-gray-400 text-center py-6 text-xs">
+        <p>&copy; 2026 Siklus Indonesia. Komunitas Berbasis Kepercayaan.</p>
+    </footer>
+
+    <!-- SCRIPT UTAMA SIKLUS (SUPABASE, JSON, & DUAL ACTION INTEGRATED) -->
+    <script>
+        // ----------------- KONFIGURASI UTAMA -----------------
+        const SUPABASE_URL = "https://ycgwyvtqzwmhioofugtl.supabase.co";
+        const SUPABASE_ANON_KEY = "sb_publishable_RKNQMDdFf32Btr7RCN9dfg_4tQ5Lh79";
+        const NOMOR_WA_ADMIN = "6285810636479"; // Gunakan nomor WA Anda (awalan 62)
+        // -----------------------------------------------------
+
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let technicians = [];
+        let selectedTech = null;
+        let acCatalog = []; // Menampung data ac-products.json
+
+        // VARIABEL GLOBAL UNTUK BIAYA TRANSAKSI (AKURASI INPUT SUPABASE)
+        let globalRincianJasa = 0;
+        let globalRincianMaterial = 0;
+        let globalTotalBiaya = 0;
+
+        // FUNGSI UNTUK MEMPERBARUI TAMPILAN SESI ANGGOTA (LOGIN/LOGOUT) DI HERO
+        function updateUserSessionUI() {
+            const heroButtons = document.getElementById('hero-buttons');
+            const user = JSON.parse(localStorage.getItem('siklus_user'));
+            
+            if (user) {
+                // Tampilan saat Anggota Sudah Login
+                heroButtons.innerHTML = `
+                    <a href="#daftar-teknisi" class="bg-white text-blue-600 font-semibold px-4 py-2 rounded-lg text-sm shadow">Gabung Jadi Teknisi</a>
+                    <span class="bg-blue-900 text-white font-semibold px-4 py-2 rounded-lg text-sm shadow flex items-center">
+                        Halo, ${user.name}
+                    </span>
+                    <button onclick="prosesLogout()" class="bg-red-600 text-white font-semibold px-4 py-2 rounded-lg text-sm shadow">Keluar</button>
+                `;
+            } else {
+                // Tampilan saat Belum Login
+                heroButtons.innerHTML = `
+                    <a href="#daftar-teknisi" class="bg-white text-blue-600 font-semibold px-4 py-2 rounded-lg text-sm shadow">Gabung Jadi Teknisi</a>
+                    <a href="#daftar-user" class="bg-blue-800 text-white font-semibold px-4 py-2 rounded-lg text-sm shadow">Daftar Pengguna</a>
+                    <button onclick="bukaModalLogin()" class="bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg text-sm shadow border border-blue-500">Masuk</button>
+                `;
+            }
+        }
+
+        // BUKA MODAL LOGIN
+        function bukaModalLogin() {
+            document.getElementById('modal-login').classList.remove('hidden');
+        }
+
+        // FUNGSI LOGOUT ANGGOTA
+        function prosesLogout() {
+            localStorage.removeItem('siklus_user');
+            updateUserSessionUI();
+            alert('Anda telah keluar dari keanggotaan.');
+        }
+
+        // FUNGSI PROSES LOGIN (COCOKKAN NOMOR WA DENGAN DATA DI DATABASE)
+        async function prosesLogin() {
+            const phoneInput = document.getElementById('login-phone').value.trim();
+            if (!phoneInput) {
+                alert('Silakan masukkan nomor WhatsApp Anda.');
+                return;
+            }
+
+            try {
+                const { data, error } = await _supabase
+                    .from('ac_users')
+                    .select('*')
+                    .eq('phone', phoneInput);
+
+                if (error) throw error;
+
+                if (data && data.length > 0) {
+                    // Jika nomor WhatsApp ditemukan di database
+                    localStorage.setItem('siklus_user', JSON.stringify(data[0]));
+                    updateUserSessionUI();
+                    tutupModal('modal-login');
+                    alert(`Berhasil masuk sebagai ${data[0].name}.`);
+                } else {
+                    // Jika tidak ditemukan di database
+                    alert('Nomor WhatsApp belum terdaftar sebagai anggota. Silakan lakukan pendaftaran keanggotaan terlebih dahulu.');
+                    tutupModal('modal-login');
+                    document.getElementById('daftar-user').scrollIntoView({ behavior: 'smooth' });
+                }
+            } catch (err) {
+                alert('Gagal memproses masuk: ' + err.message);
+                console.error(err);
+            }
+        }
+
+        // FUNGSI MEMUAT KATALOG AC DARI FILE JSON
+        async function loadACCatalog() {
+            try {
+                const response = await fetch('ac-products.json');
+                acCatalog = await response.json();
+                
+                const selectElement = document.getElementById('select-unit-ac');
+                selectElement.innerHTML = `<option value="">-- Pilih Unit AC Baru --</option>`;
+                
+                acCatalog.forEach((ac, index) => {
+                    const priceFormatted = ac.price.toLocaleString('id-ID');
+                    selectElement.innerHTML += `
+                        <option value="${index}">${ac.brand} - ${ac.model} (${ac.pk} PK) - Rp ${priceFormatted}</option>
+                    `;
+                });
+            } catch (err) {
+                console.error("Gagal memuat katalog ac-products.json:", err.message);
+                document.getElementById('select-unit-ac').innerHTML = `<option value="">Gagal memuat katalog AC</option>`;
+            }
+        }
+
+        // FUNGSI MENGAMBIL DATA TEKNISI DARI DATABASE SUPABASE
+        async function fetchTechniciansFromDB() {
+            try {
+                const { data, error } = await _supabase
+                    .from('technicians')
+                    .select('*')
+                    .eq('is_verified', true);
+
+                if (error) throw error;
+                return data;
+            } catch (err) {
+                console.error("Gagal mengambil data dari Supabase:", err.message);
+                return [];
+            }
+        }
+
+        // TAMPILKAN DAFTAR TEKNISI DI LAYAR
+        async function renderTeknisi() {
+            const wilayahFilter = document.getElementById('filter-wilayah').value;
+            const statusFilter = document.getElementById('filter-status').value;
+            const container = document.getElementById('daftar-teknisi-container');
+
+            if (technicians.length === 0) {
+                technicians = await fetchTechniciansFromDB();
+            }
+
+            container.innerHTML = "";
+
+            const filtered = technicians.filter(tech => {
+                const matchWilayah = (wilayahFilter === "Semua") || (tech.region === wilayahFilter);
+                const matchStatus = (statusFilter === "Semua") || (tech.status === statusFilter);
+                return matchWilayah && matchStatus;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<p class="text-xs text-gray-400 text-center py-6">Tidak ada teknisi terverifikasi yang sesuai kriteria.</p>`;
+                return;
+            }
+
+            filtered.forEach(tech => {
+                const statusColor = tech.status === "Aktif" ? "text-blue-600" : "text-red-500";
+                const statusText = tech.status === "Aktif" ? "Siap Bertugas" : "Sedang Off";
+                
+                container.innerHTML += `
+                    <div onclick="bukaProfil(${tech.id})" class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-start gap-3 cursor-pointer hover:border-blue-400 transition-all">
+                        <img src="${tech.photo || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150'}" alt="${tech.name}" class="w-12 h-12 rounded-full object-cover border-2 border-gray-200 shrink-0">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-1.5">
+                                <h4 class="font-bold text-sm text-gray-900 truncate">${tech.name}</h4>
+                                <span class="bg-green-100 text-green-700 text-[9px] px-1.5 py-0.5 rounded font-medium shrink-0">Terverifikasi</span>
+                            </div>
+                            <p class="text-xs text-gray-500">${tech.subdistrict}, ${tech.region}</p>
+                            <div class="flex items-center gap-1 mt-1 text-xs text-yellow-500 font-bold">
+                                ★ ${tech.rating_overall || '0.0'} <span class="text-gray-400 font-normal">(${tech.reviews_count || 0} Ulasan)</span>
+                            </div>
+                            <p class="text-[11px] ${statusColor} mt-1 font-semibold">Status: ${statusText}</p>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        document.getElementById('filter-wilayah').addEventListener('change', renderTeknisi);
+        document.getElementById('filter-status').addEventListener('change', renderTeknisi);
+
+        // BUKA MODAL DETAIL PROFIL
+        function bukaProfil(id) {
+            selectedTech = technicians.find(t => t.id === id);
+            if (!selectedTech) return;
+
+            document.getElementById('modal-foto').src = selectedTech.photo || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150';
+            document.getElementById('modal-nama').innerText = selectedTech.name;
+            document.getElementById('modal-lokasi').innerText = `${selectedTech.subdistrict}, ${selectedTech.region}`;
+            
+            const statusText = selectedTech.status === "Aktif" ? "Siap Bertugas" : "Sedang Off";
+            const statusColor = selectedTech.status === "Aktif" ? "text-blue-600" : "text-red-500";
+            document.getElementById('modal-status').innerText = `Status: ${statusText}`;
+            document.getElementById('modal-status').className = `text-xs font-bold mt-1 ${statusColor}`;
+
+            document.getElementById('rating-waktu').innerText = selectedTech.rating_waktu || "0.0 ★";
+            document.getElementById('rating-komunikasi').innerText = selectedTech.rating_komunikasi || "0.0 ★";
+            document.getElementById('rating-rapi').innerText = selectedTech.rating_rapi || "0.0 ★";
+            document.getElementById('rating-keahlian').innerText = selectedTech.rating_keahlian || "0.0 ★";
+            document.getElementById('rating-edukasi').innerText = selectedTech.rating_edukasi || "0.0 ★";
+
+            const portContainer = document.getElementById('modal-portofolio');
+            portContainer.innerHTML = "";
+            
+            const portfolioImages = selectedTech.portfolio || [
+                "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=300&auto=format&fit=crop&q=80"
+            ];
+            
+            portfolioImages.forEach(imgUrl => {
+                portContainer.innerHTML += `<img src="${imgUrl}" alt="Portofolio" class="w-full h-24 object-cover rounded-lg border border-gray-100">`;
+            });
+
+            document.getElementById('btn-lanjut-pesan').onclick = function() {
+                tutupModal('modal-profil');
+                bukaFormBooking();
+            };
+
+            document.getElementById('modal-profil').classList.remove('hidden');
+        }
+
+        // BUKA MODAL FORM ORDER (DIPERKETAT KEANGGOTAAN)
+        function bukaFormBooking() {
+            if (!selectedTech) return;
+            
+            // 1. Periksa Apakah Pengguna Sudah Login/Masuk Sesi Anggota
+            const user = JSON.parse(localStorage.getItem('siklus_user'));
+            if (!user) {
+                tutupModal('modal-profil');
+                alert('Hanya anggota terdaftar yang dapat melakukan order. Silakan Masuk terlebih dahulu.');
+                bukaModalLogin();
+                return;
+            }
+
+            document.getElementById('booking-nama-teknisi').innerText = `Pilihan Teknisi: ${selectedTech.name}`;
+            document.getElementById('modal-booking').classList.remove('hidden');
+            
+            document.getElementById('form-order').reset();
+            
+            // 2. Pasang Data Anggota Secara Otomatis
+            document.getElementById('order-cust-name').value = user.name;
+            document.getElementById('order-cust-phone').value = user.phone;
+
+            // Sembunyikan panel Qty material secara default saat reset
+            document.getElementById('div-qty-pipa').classList.add('hidden');
+            document.getElementById('div-qty-bracket').classList.add('hidden');
+            document.getElementById('div-qty-stopkontak').classList.add('hidden');
+            document.getElementById('div-beli-unit').classList.add('hidden');
+            
+            hitungHarga();
+            toggleOrderButton();
+        }
+
+        // TAMPILKAN/SEMBUNYIKAN KOLOM QUANTITY MATERIAL DENGAN DETAIL HARGA ECERAN
+        function toggleMaterialQty(type) {
+            const check = document.getElementById(`mat-${type}`);
+            const divQty = document.getElementById(`div-qty-${type}`);
+            
+            if (check.checked) {
+                divQty.classList.remove('hidden');
+            } else {
+                divQty.classList.add('hidden');
+                document.getElementById(`qty-${type}`).value = "1";
+            }
+            hitungHarga();
+        }
+
+        // TAMPILKAN/SEMBUNYIKAN DROPDOWN UNIT AC BARU
+        function toggleBeliUnit() {
+            const check = document.getElementById('beli-unit-check');
+            const divBeliUnit = document.getElementById('div-beli-unit');
+            if (check.checked) {
+                divBeliUnit.classList.remove('hidden');
+            } else {
+                divBeliUnit.classList.add('hidden');
+                document.getElementById('select-unit-ac').value = "";
+                document.getElementById('preview-spek-ac').classList.add('hidden');
+            }
+            hitungHarga();
+        }
+
+        // KALKULATOR PENETAPAN HARGA SIKLUS (ECERAN & QUANTITY-BASED)
+        function hitungHarga() {
+            const layanan = document.getElementById('order-layanan').value;
+            const pk = document.getElementById('order-pk').value;
+            const qty = parseInt(document.getElementById('order-qty').value) || 1;
+
+            const divPk = document.getElementById('div-pk');
+            if (layanan === "pasang" || layanan === "perawatan") {
+                divPk.classList.remove('hidden');
+            } else {
+                divPk.classList.add('hidden');
+            }
+
+            // 1. BIAYA JASA UTAMA
+            let hargaJasaPerUnit = 0;
+            if (layanan === "pasang") {
+                hargaJasaPerUnit = (pk === "small") ? 350000 : 600000;
+            } else if (layanan === "perawatan") {
+                hargaJasaPerUnit = (pk === "small") ? 90000 : 100000;
+            } else if (layanan === "perbaikan") {
+                hargaJasaPerUnit = 0;
+            } else if (layanan === "bongkar") {
+                hargaJasaPerUnit = 120000;
+            }
+
+            const totalJasa = hargaJasaPerUnit * qty;
+
+            // 2. BIAYA TAMBAHAN MATERIAL (ECERAN MANDIRI)
+            let totalMaterial = 0;
+
+            const hargaPipaPerMeter = (pk === "small") ? 150000 : 180000;
+            document.getElementById('label-harga-pipa').innerText = `Harga: Rp ${hargaPipaPerMeter.toLocaleString('id-ID')} / meter`;
+            
+            if (document.getElementById('mat-pipa').checked) {
+                const panjangPipa = parseInt(document.getElementById('qty-pipa').value) || 1;
+                totalMaterial += (hargaPipaPerMeter * panjangPipa);
+            }
+
+            const hargaBracket = (pk === "small") ? 75000 : 105000;
+            document.getElementById('label-harga-bracket').innerText = `Harga: Rp ${hargaBracket.toLocaleString('id-ID')} / set`;
+            
+            if (document.getElementById('mat-bracket').checked) {
+                const jumlahBracket = parseInt(document.getElementById('qty-bracket').value) || 1;
+                totalMaterial += (hargaBracket * jumlahBracket);
+            }
+
+            if (document.getElementById('mat-stopkontak').checked) {
+                const skQty = parseInt(document.getElementById('qty-stopkontak').value) || 1;
+                totalMaterial += (90000 * skQty);
+            }
+
+            // 3. PEMBELIAN UNIT AC BARU
+            const beliUnitCheck = document.getElementById('beli-unit-check');
+            const selectUnitAc = document.getElementById('select-unit-ac');
+            const previewSpekAc = document.getElementById('preview-spek-ac');
+            
+            let hargaUnitAC = 0;
+
+            if (beliUnitCheck.checked && selectUnitAc.value !== "") {
+                const selectedIndex = parseInt(selectUnitAc.value);
+                const acSelected = acCatalog[selectedIndex];
+
+                if (acSelected) {
+                    hargaUnitAC = acSelected.price * qty;
+                    
+                    previewSpekAc.classList.remove('hidden');
+                    previewSpekAc.innerHTML = `
+                        <p class="font-bold text-blue-900">Spesifikasi Detail Unit:</p>
+                        <p>• Model: ${acSelected.brand} ${acSelected.model} (${acSelected.pk} PK)</p>
+                        <p>• Daya Listrik: ${acSelected.watt} Watt</p>
+                        <p>• Kapasitas Dingin: ${acSelected.btu.toLocaleString()} BTU/H</p>
+                        <p>• Refrigerant: ${acSelected.refrigerant}</p>
+                        <p>• Buatan: ${acSelected.made_in} | Ukuran Pipa: ${acSelected.pipe_size}</p>
+                        <p class="font-semibold text-green-700">✓ Garansi Resmi: Sparepart ${acSelected.warranty_sparepart} / Kompresor ${acSelected.warranty_compressor}</p>
+                    `;
+                }
+            } else {
+                previewSpekAc.classList.add('hidden');
+            }
+
+            const totalMaterialDanUnit = totalMaterial + hargaUnitAC;
+            const totalSeluruhnya = totalJasa + totalMaterialDanUnit;
+
+            // MENYIMPAN BIAYA KE VARIABEL GLOBAL (UNTUK EXPORT KE SUPABASE)
+            globalRincianJasa = totalJasa;
+            globalRincianMaterial = totalMaterialDanUnit;
+            globalTotalBiaya = totalSeluruhnya;
+
+            // UPDATE ESTIMASI DI LAYAR
+            if (layanan === "perbaikan") {
+                document.getElementById('preview-jasa').innerText = "Ditentukan Setelah Diagnosa";
+                document.getElementById('preview-total').innerText = totalMaterialDanUnit > 0 ? `Rp ${totalMaterialDanUnit.toLocaleString('id-ID')} + Biaya Perbaikan` : "Mulai Rp 300.000 (Diagnosa/Isi Freon)";
+            } else {
+                document.getElementById('preview-jasa').innerText = `Rp ${totalJasa.toLocaleString('id-ID')} (${qty} Unit)`;
+                document.getElementById('preview-total').innerText = `Rp ${totalSeluruhnya.toLocaleString('id-ID')}`;
+            }
+            
+            document.getElementById('preview-material').innerText = `Rp ${totalMaterialDanUnit.toLocaleString('id-ID')}`;
+        }
+
+        // AKTIFKAN/NONAKTIFKAN TOMBOL PESAN
+        function toggleOrderButton() {
+            const checkbox = document.getElementById('approval-check');
+            const btn = document.getElementById('btn-final-order');
+            
+            if (checkbox.checked) {
+                btn.disabled = false;
+                btn.classList.remove('bg-gray-400', 'cursor-not-allowed');
+                btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+            } else {
+                btn.disabled = true;
+                btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                btn.classList.add('bg-gray-400', 'cursor-not-allowed');
+            }
+        }
+
+        // FUNGSI UTAMA: PROSES SIMPAN KE DATABASE & KIRIM ORDER KE WA ADMIN (SELARAS 100%)
+        async function prosesSimpanDanKirim() {
+            if (!selectedTech) return;
+
+            const custName = document.getElementById('order-cust-name').value;
+            const custPhone = document.getElementById('order-cust-phone').value;
+            const tanggal = document.getElementById('order-date').value;
+            const waktu = document.getElementById('order-time').value;
+            const layanan = document.getElementById('order-layanan').value;
+            const pk = document.getElementById('order-pk').value;
+            const qty = parseInt(document.getElementById('order-qty').value) || 1;
+            const kendala = document.getElementById('order-kendala').value;
+
+            if (!custName || !custPhone || !tanggal || !waktu || !kendala) {
+                alert('Silakan lengkapi data Nama, WhatsApp, Tanggal, Waktu, dan Catatan Kendala.');
+                return;
+            }
+
+            // Membaca Pilihan Kuantitas Eceran Material
+            let materialDipilih = [];
+            let panjangPipaInput = 0;
+            let qtyBracketInput = 0;
+            let qtyStopKontakInput = 0;
+
+            if (document.getElementById('mat-pipa').checked) {
+                panjangPipaInput = parseInt(document.getElementById('qty-pipa').value) || 1;
+                const hargaPipa = (pk === "small") ? 150000 : 180000;
+                materialDipilih.push(`Pipa Tembaga + Kabel (${panjangPipaInput} Meter @ Rp ${hargaPipa.toLocaleString('id-ID')})`);
+            }
+            if (document.getElementById('mat-bracket').checked) {
+                qtyBracketInput = parseInt(document.getElementById('qty-bracket').value) || 1;
+                const hargaBracket = (pk === "small") ? 75000 : 105000;
+                materialDipilih.push(`Bracket Outdoor (${qtyBracketInput} Set @ Rp ${hargaBracket.toLocaleString('id-ID')})`);
+            }
+            if (document.getElementById('mat-stopkontak').checked) {
+                qtyStopKontakInput = parseInt(document.getElementById('qty-stopkontak').value) || 1;
+                materialDipilih.push(`Stop Kontak Kaki 3 (${qtyStopKontakInput} Set @ Rp 90.000)`);
+            }
+
+            // Membaca Pilihan Pembelian Unit AC Baru
+            const beliUnitCheck = document.getElementById('beli-unit-check');
+            const selectUnitAc = document.getElementById('select-unit-ac');
+            let unitDipesanText = "Tidak Membeli Unit Baru";
+            let unitModelDipesan = null;
+
+            if (beliUnitCheck.checked && selectUnitAc.value !== "") {
+                const acSelected = acCatalog[parseInt(selectUnitAc.value)];
+                unitModelDipesan = `${acSelected.brand} ${acSelected.model}`;
+                unitDipesanText = `${acSelected.brand} ${acSelected.model} (${acSelected.pk} PK)
+  • Specs: ${acSelected.btu.toLocaleString()} BTU/H, ${acSelected.watt}W, Freon ${acSelected.refrigerant}, Pipa ${acSelected.pipe_size} (${acSelected.made_in})
+  • Garansi: Sparepart ${acSelected.warranty_sparepart} / Kompresor ${acSelected.warranty_compressor}`;
+            }
+
+            const materialText = materialDipilih.length > 0 ? materialDipilih.join(", ") : "Tidak Ada";
+            const hargaJasa = document.getElementById('preview-jasa').innerText;
+            const hargaMaterial = document.getElementById('preview-material').innerText;
+            const totalPemesanan = document.getElementById('preview-total').innerText;
+
+            const btnFinal = document.getElementById('btn-final-order');
+            btnFinal.disabled = true;
+            btnFinal.innerText = "Memproses...";
+
+            // 1. LOGIKA SIMPAN SECARA RAPI KE TABEL 'orders' DI SUPABASE
+            try {
+                const { error: dbError } = await _supabase
+                    .from('orders')
+                    .insert([{
+                        technician_id: selectedTech.id,
+                        technician_name: selectedTech.name,
+                        customer_name: custName,
+                        customer_phone: custPhone,
+                        service_date: tanggal,
+                        service_time: waktu,
+                        service_type: layanan,
+                        ac_pk: pk,
+                        ac_qty: qty,
+                        material_details: materialText,
+                        new_ac_unit: unitModelDipesan,
+                        notes: kendala,
+                        price_jasa: globalRincianJasa,
+                        price_material: globalRincianMaterial,
+                        price_total: globalTotalBiaya,
+                        status: 'Pending'
+                    }]);
+
+                if (dbError) throw dbError;
+
+                // 2. KIRIM PESAN KE WHATSAPP ADMIN JIKA DATABASE SELESAI DICATAT (SUCCESS RECORD)
+                const pesan = `Halo Admin SIKLUS, saya ingin memesan layanan teknisi:
+
+*DATA LAYANAN SIKLUS:*
+• Nama Juru AC: ${selectedTech.name} (${selectedTech.subdistrict})
+• Nama Pemesan: ${custName}
+• WA Pemesan: ${custPhone}
+• Jadwal Pengerjaan: ${tanggal} (Pukul ${waktu} WIB)
+• Jasa Layanan: ${layanan.toUpperCase()} (${layanan === "pasang" || layanan === "perawatan" ? (pk === "small" ? "1/2 - 1 PK" : "1.5 - 2 PK") : "Diagnosa"})
+• Jumlah AC: ${qty} Unit
+• Catatan Kendala: "${kendala}"
+
+*DATA TAMBAHAN MATERIAL (ECERAN):*
+  • ${materialDipilih.length > 0 ? materialDipilih.join("\n  • ") : "Tidak Ada"}
+
+*DATA UNIT AC BARU DIPESAN:*
+• Unit Baru: ${unitDipesanText}
+
+*RINCIAN ESTIMASI BIAYA AWAL (APPROVED BY CUSTOMER):*
+• Estimasi Jasa: ${hargaJasa}
+• Estimasi Material/Unit: ${hargaMaterial}
+• TOTAL ESTIMASI AWAL: *${totalPemesanan}*
+
+_(Catatan: Saya menyetujui rincian di atas. Apabila terdapat pengerjaan jasa tambahan di lokasi, saya akan mengomunikasikan dengan Admin terlebih dahulu)._`;
+
+                const linkWA = `https://wa.me/${NOMOR_WA_ADMIN}?text=${encodeURIComponent(pesan)}`;
+                window.open(linkWA, '_blank');
+                tutupModal('modal-booking');
+
+            } catch (err) {
+                alert('Maaf, gagal menyimpan pesanan Anda ke database: ' + err.message);
+                console.error(err);
+            } finally {
+                btnFinal.disabled = false;
+                btnFinal.innerText = "Setujui & Pesan via Admin";
+            }
+        }
+
+        // FUNGSI UMUM TUTUP MODAL
+        function tutupModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        // FUNGSI PENGIRIM DATA FORM PENDAFTARAN KE SUPABASE
+        async function handleFormSubmitSupabase(formId, tableName) {
+            const form = document.getElementById(formId);
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const submitButton = form.querySelector('button[type="submit"]');
+                const originalText = submitButton.innerText;
+                submitButton.disabled = true;
+                submitButton.innerText = "Mengirim...";
+
+                const formData = new FormData(form);
+                let insertData = {};
+
+                if (tableName === 'technicians') {
+                    const photoFile = formData.get('profilePhoto');
+                    let photoUrl = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80";
+
+                    if (photoFile && photoFile.size > 0) {
+                        try {
+                            const fileExt = photoFile.name.split('.').pop();
+                            const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
+                            
+                            const { data: uploadData, error: uploadError } = await _supabase
+                                .storage
+                                .from('technician-photos')
+                                .upload(fileName, photoFile);
+                                
+                            if (uploadError) throw uploadError;
+
+                            const { data: urlData } = _supabase
+                                .storage
+                                .from('technician-photos')
+                                .getPublicUrl(fileName);
+                            
+                            photoUrl = urlData.publicUrl;
+                        } catch (uploadErr) {
+                            console.error("Gagal mengunggah foto wajah:", uploadErr.message);
+                        }
+                    }
+
+                    insertData = {
+                        name: formData.get('name'),
+                        phone: formData.get('phone'),
+                        region: formData.get('region'),
+                        subdistrict: formData.get('subdistrict'),
+                        photo: photoUrl,
+                        is_verified: false,
+                        status: "Aktif"
+                    };
+                } else if (tableName === 'ac_users') {
+                    insertData = {
+                        name: formData.get('name'),
+                        phone: formData.get('phone'),
+                        address: formData.get('address')
+                    };
+                }
+
+                try {
+                    const { error } = await _supabase
+                        .from(tableName)
+                        .insert([insertData]);
+
+                    if (error) throw error;
+
+                    // AUTO-LOGIN JIKA USER BARU DAFTAR
+                    if (tableName === 'ac_users') {
+                        localStorage.setItem('siklus_user', JSON.stringify(insertData));
+                        updateUserSessionUI();
+                        alert('Pendaftaran Berhasil! Anda otomatis masuk sebagai anggota Siklus.');
+                    } else {
+                        alert('Pendaftaran Berhasil! Data Anda telah tersimpan di sistem verifikasi Admin Siklus.');
+                    }
+                    form.reset();
+                } catch (err) {
+                    alert('Maaf, terjadi kesalahan: ' + err.message);
+                    console.error(err);
+                } finally {
+                    submitButton.disabled = false;
+                    submitButton.innerText = originalText;
+                }
+            });
+        }
+
+        // INISIASI WEB PERTAMA KALI
+        updateUserSessionUI(); // Memeriksa sesi login saat halaman pertama kali dibuka
+        loadACCatalog(); // Memanggil katalog dari ac-products.json
+        renderTeknisi();
+        handleFormSubmitSupabase('form-technisi', 'technicians');
+        handleFormSubmitSupabase('form-user', 'ac_users');
+    </script>
+
+</body>
+</html>
+
+--- END OF FILE index.html ---
+ganti file index.html yang saya pakai dengan perubahnnya ya. Ingat, jngan rubah ssekali key database dan url supabase yang ada didalamnya karena itu sangan penting. data yang diinput ke order database juga dislaraskan agar tidak null value
